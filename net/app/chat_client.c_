@@ -1,0 +1,174 @@
+/*==============================================================================
+** main.c -- DfewOS telnet_client.
+**
+** MODIFY HISTORY:
+**
+** 2012-05-15 wdf Create.
+==============================================================================*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+#include <sys/types.h>
+
+#ifdef _WIN32 /* For windows */
+#include <Winsock2.h>
+#include <Windows.h>
+#pragma comment(lib,"Ws2_32.lib")
+#else /* For unix  platform Like Linux8,9 and Fedoral ,Solaris9 and freebsd */
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <errno.h>
+#endif /* _WIN32 */
+
+#ifdef __FreeBSD__
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
+/*======================================================================
+  Configs
+======================================================================*/
+#define MSG_SIZE     (10240 + 4)
+#define SERVER_IP    "192.168.9.167"  /* 服务器IP地址 */
+#define SERVER_PORT   9888            /* 服务器端口 */
+
+/*======================================================================
+  Function Declare Forward
+======================================================================*/
+static int init_sock_addr (struct sockaddr_in *addr, char *server_ip, int port);
+static int send_to_addr (int sockfd, struct sockaddr_in * addr, char buffer[]);
+static int recv_from_sock (int sockfd, char buffer[]);
+
+/*==============================================================================
+ * - main()
+ *
+ * - entry
+ */
+int main(void)
+{  
+    int    sockfd;
+    struct sockaddr_in addr;
+    char   buffer[MSG_SIZE];
+
+    /*
+     * create socket & address
+     */
+    sockfd = init_sock_addr(&addr, SERVER_IP, SERVER_PORT);
+
+    /* 
+     * send * recive
+     */
+    while (1) {
+        memset(buffer, 0, MSG_SIZE);
+        gets(buffer);
+
+        send_to_addr (sockfd, &addr, buffer);
+
+        if (recv_from_sock(sockfd, buffer) > 0) {
+            printf("%s\n", buffer);
+		} else {
+			printf ("recv noting!\n");
+		}
+    }
+
+    return 0;
+}
+
+/*==============================================================================
+ * - init_sock_addr()
+ *
+ * - 
+ */
+static int init_sock_addr (struct sockaddr_in *addr, char *server_ip, int port)
+{
+    int sockfd; 
+    int a1,a2,a3,a4;
+
+#ifdef WIN32
+    WSADATA w;
+    if (WSAStartup(0x0101, &w) != 0) {
+        fprintf(stderr, "Could not open Windows connection.\n"); 
+        exit(0);
+    } 
+#endif
+
+    /* 
+     * create a socket
+     */
+    sockfd = socket(AF_INET,SOCK_DGRAM,0); 
+#ifdef WIN32
+    if (sockfd == INVALID_SOCKET) {
+        fprintf(stderr, "Could not create socket.\n");
+        WSACleanup();
+        exit(0);
+    }
+    memset((void *)addr, '\0', sizeof(struct sockaddr_in)); 
+#else 
+    if (sockfd < 0) { 
+        fprintf(stderr,"Socket Error:%s\n",strerror(errno)); 
+        return -1;
+    }  
+    bzero(addr,sizeof(struct sockaddr_in));    
+#endif
+
+    /*
+     * init address
+     */
+    addr->sin_family = AF_INET; 
+    addr->sin_port   = htons((u_short)port); 
+#ifdef  _WIN32
+    sscanf(server_ip,"%d.%d.%d.%d",&a1,&a2,&a3,&a4);
+    addr->sin_addr.S_un.S_un_b.s_b1 = (unsigned char)a1;
+    addr->sin_addr.S_un.S_un_b.s_b2 = (unsigned char)a2;
+    addr->sin_addr.S_un.S_un_b.s_b3 = (unsigned char)a3;
+    addr->sin_addr.S_un.S_un_b.s_b4 = (unsigned char)a4;
+#else
+    if (inet_aton(server_ip,&(addr->sin_addr)) < 0) { 
+        fprintf(stderr,"Ip error:%s\n",strerror(errno)); 
+        return -1; 
+    } 
+#endif
+    return sockfd;
+}
+
+/*==============================================================================
+ * - send_to_addr()
+ *
+ * - use socket <sockfd> send message to address <addr>
+ */
+static int send_to_addr (int sockfd, struct sockaddr_in *addr, char buffer[])
+{
+    int len = sizeof(struct sockaddr_in);
+    sendto (sockfd, buffer, strlen(buffer) + 1, 0 , (struct sockaddr*)addr, len); 
+    return 0;
+}
+
+/*==============================================================================
+ * - recv_from_sock()
+ *
+ * - use socket <sockfd> receive message
+ */
+static int recv_from_sock (int sockfd, char buffer[])
+{
+    int n;
+    int addr_len; 
+    struct sockaddr_in addr;
+
+    addr_len = sizeof(struct sockaddr_in); 
+    memset(buffer, '\0' , MSG_SIZE);
+
+    n = recvfrom (sockfd, buffer, MSG_SIZE, 0, (struct sockaddr*)&addr, &addr_len);         
+    if (n < 0) {
+        return -1;
+    }
+
+    buffer[n] = '\0';  
+    return n;
+}
+
+/*==============================================================================
+** FILE END
+==============================================================================*/
+
