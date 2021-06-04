@@ -135,7 +135,7 @@ void T_shell ()
     tetris_cmd_init();      /* tetris */
     lian_cmd_init();        /* lianliankan */
     date_cmd_init();        /* show and set date */
-    cal_cmd_init();            /* calculator expression */
+    cal_cmd_init();         /* calculator expression */
     gui_init();
     ios_init();
     media_init();
@@ -146,7 +146,6 @@ void T_shell ()
 #endif
 
     serial_puts("\n-> ");
-
 
     FOREVER {
         _get_cmd_line(usr_cmd_line);
