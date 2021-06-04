@@ -21,10 +21,8 @@
 #include "../semM.h"
 #include "../cmd.h"
 #include "../atomic.h"
-
-int tick_get();
-
-#include <malloc.h>
+#include "../tick.h"
+#include "../memH.h"
 
 #endif /* __DFEWOS_H__ */
 

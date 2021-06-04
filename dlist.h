@@ -46,14 +46,14 @@ typedef OS_STATUS (*EACH_FUNC_PTR)(DL_NODE *pNode, int arg);
  *
  * - Finds the last node in a doubly linked list
  */
-#define DL_LAST(pList)     (((DL_LIST *)(pList))->tail)
+#define DL_LAST(pList)         (((DL_LIST *)(pList))->tail)
 
 /*==============================================================================
  * - DL_NEXT()
  *
  * - Locates the node immediately after the node pointed to by the <pNode>
  */
-#define DL_NEXT(pNode)     (((DL_NODE *)(pNode))->next)
+#define DL_NEXT(pNode)         (((DL_NODE *)(pNode))->next)
 
 /*==============================================================================
  * - DL_PREVIOUS()

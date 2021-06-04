@@ -10,12 +10,6 @@
 #include "types.h"
 #include "atomic.h"
 
-void atomic_aaa()
-{
-    int a;
-    a = 2;
-}
-
 /*==============================================================================
  * - atomic_add()
  *
@@ -118,7 +112,7 @@ atomic_t atomic_clear (atomic_t *target)
  *   setting the value of <*target> to <new_value>
  *
  * - <old_value>: compare to this value
- *   <new_value): swap with this value
+ *   <new_value>: swap with this value
  */
 BOOL atomic_cas (atomic_t *target, atomic_t old_value, atomic_t new_value)
 {

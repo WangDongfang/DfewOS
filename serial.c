@@ -149,7 +149,8 @@ int serial_write (char *buf, int e_size, int e_num)
 #define EOF             -1
 #endif
 
-#include <stdarg.h>
+//#include <stdarg.h>
+#include "string.h"
 int serial_printf (const char* str, ... )
 {
     va_list arp;
@@ -165,45 +166,50 @@ int serial_printf (const char* str, ... )
     for (cc = res = 0; cc != EOF; res += cc) {
         c = *str++;
         if (c == 0) break;            /* End of string */
-        if (c != '%') {                /* Non escape cahracter */
+        if (c != '%') {               /* Non escape cahracter */
             cc = f_putc(c, fil);
             if (cc != EOF) cc = 1;
             continue;
         }
         w = f = 0;
         c = *str++;
-        if (c == '%') {             /* print '%' _Dong */
+        if (c == '%') {               /* print '%' _Dong */
             cc = f_putc(c, fil);
             continue;
         }
-        if (c == '0') {                /* Flag: '0' padding */
+        if (c == '0') {               /* Flag: '0' padding */
             f = 1; c = *str++;
         }
-        if (c == ' ') {             /* Flag: ' ' padding _Dong */
+        if (c == ' ') {               /* Flag: ' ' padding _Dong */
             c = *str++;
         }
-        while (c >= '0' && c <= '9') {    /* Precision */
+        while (c >= '0' && c <= '9') {/* Precision */
             w = w * 10 + (c - '0');
             c = *str++;
         }
-        if (c == 'l') {                /* Prefix: Size is long int */
+        if (c == 'l') {               /* Prefix: Size is long int */
             f |= 2; c = *str++;
+            if (c == 'l') {
+                f |= 8; c = *str++;
+            }
         }
-        if (c == 's') {                /* Type is string */
+        if (c == 's') {               /* Type is string */
             cc = f_puts(va_arg(arp, char*), fil);
             continue;
         }
-        if (c == 'c') {                /* Type is character */
+        if (c == 'c') {               /* Type is character */
             cc = f_putc(va_arg(arp, int), fil);
             if (cc != EOF) cc = 1;
             continue;
         }
         r = 0;
-        if (c == 'd') r = 10;        /* Type is signed decimal */
-        if (c == 'u') r = 10;        /* Type is unsigned decimal */
+        if (c == 'd') r = 10;         /* Type is signed decimal */
+        if (c == 'u') r = 10;         /* Type is unsigned decimal */
         if (c == 'X' || c == 'x' || c == 'p') r = 16;        /* Type is unsigned hexdecimal _Dong */
         if (r == 0) break;            /* Unknown type */
-        if (f & 2) {                /* Get the value */
+        if (f & 8) {                  /* Get the value */
+            val = (ULONG long)va_arg(arp, long long);
+        } else if (f & 2) {
             val = (ULONG)va_arg(arp, long);
         } else {
             val = (c == 'd') ? (ULONG)(long)va_arg(arp, int) : (ULONG)va_arg(arp, unsigned int);

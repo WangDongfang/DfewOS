@@ -13,7 +13,7 @@
 #include "readyQ.h"
 #include "semM.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 /*======================================================================
   extern function

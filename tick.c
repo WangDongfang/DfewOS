@@ -41,7 +41,7 @@ void tick_announce()
     delayQ_decrease ();
 
     /*
-     * rotate the some priority tasks
+     * rotate the same priority tasks
      * put now task to end
      */
     readyQ_remove(G_p_current_tcb);

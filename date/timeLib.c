@@ -48,7 +48,7 @@ static TIME_SOCKET __GtsBaseTime = {1970, 1, 1, 0, 0, 0, 6, 0};         /*  1970
 #ifdef OS_VXWORKS
 static SEM_ID      __GsemBaseTimeMutex = NULL;                          /*  互斥__GtsBaseTime的访问      */
 #define OS_MUX_INIT __GsemBaseTimeMutex = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE);
-#define OS_BASETIME_LOCK    semTake(__GsemBaseTimeMutex, WAIT_FOREVER);  /*  获取互斥信号量               */
+#define OS_BASETIME_LOCK    semTake(__GsemBaseTimeMutex, WAIT_FOREVER); /*  获取互斥信号量               */
 #define OS_BASETIME_UNLOCK  semGive(__GsemBaseTimeMutex);
 #elif defined(OS_DFEWOS)
 static SEM_MUX*    __GsemBaseTimeMutex = NULL;                          /*  互斥__GtsBaseTime的访问      */

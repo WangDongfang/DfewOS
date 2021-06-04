@@ -38,7 +38,7 @@ static int min_interval_between_blk_scr (const SCREEN *scr, const BLOCK *blk);
  */
 void find_steps (SCREEN *scr, const BLOCK *blk, STEPS *p_steps)
 {
-	int    temp_score;              /* store current type score */
+    int    temp_score;              /* store current type score */
     int    max_score = 0x80000000;  /* init as minimal integer */
 
     int    turn_num;        /* this blk can turn times */

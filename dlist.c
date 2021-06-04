@@ -73,17 +73,17 @@ void dlist_remove (DL_LIST *pList,             /* pointer to list descriptor */
                    DL_NODE *pNode)             /* pointer to node to be deleted */
 {
 
-    if (pNode->previous == NULL)
+    if (pNode->previous == NULL) {
         pList->head = pNode->next;
-    else
+    } else {
         pNode->previous->next = pNode->next;
+    }
 
-    if (pNode->next == NULL)
+    if (pNode->next == NULL) {
         pList->tail = pNode->previous;
-    else
+    } else {
         pNode->next->previous = pNode->previous;
-
-
+    }
 }
 
 /*==============================================================================
@@ -137,7 +137,7 @@ int dlist_check (DL_LIST *pList, DL_NODE *pNode)
 {
     DL_NODE *pListNode = DL_FIRST (pList);
     while (pListNode != NULL && pListNode != pNode) {
-    	pListNode = DL_NEXT (pListNode);
+        pListNode = DL_NEXT (pListNode);
     }
 
     return (pListNode ? 1 : 0);
@@ -162,19 +162,18 @@ int dlist_check (DL_LIST *pList, DL_NODE *pNode)
  * - RETURNS: NULL if traversed whole linked list, or pointer to DL_NODE that
  *            dlist_each ended with.
  */
-DL_NODE *dlist_each (DL_LIST     *pList,         /* linked list of nodes to call routine for */
-                    EACH_FUNC_PTR routine,       /* the routine to call for each list node */
-                     int          routineArg)    /* arbitrary user-supplied argument */
+DL_NODE *dlist_each (DL_LIST      *pList,      /* linked list of nodes to call routine for */
+                     EACH_FUNC_PTR routine,    /* the routine to call for each list node */
+                     int           routineArg) /* arbitrary user-supplied argument */
 {
     DL_NODE *pNode = DL_FIRST (pList);
 
-    while ( (pNode != NULL) && ((* routine)(pNode, routineArg) == OS_STATUS_OK) )
+    while ( (pNode != NULL) && ((* routine)(pNode, routineArg) == OS_STATUS_OK) ) {
         pNode = DL_NEXT (pNode);
+    }
 
     return (pNode);            /* return node we ended with */
 }
-
-
 /*==============================================================================
 ** FILE END
 ==============================================================================*/

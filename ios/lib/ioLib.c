@@ -31,7 +31,7 @@ static int _io_create_or_open (
      */
     if ((name == NULL) || (name[0] == EOS)) {
         return OS_STATUS_ERROR;
-	}
+    }
     
     /*
      * alloc fd
@@ -57,7 +57,7 @@ static int _io_create_or_open (
         iosFreeFd (fd);
         fd = -1;
     } else {
-        iosSaveDevNum (fd, pDevMatch);
+        iosSaveDevNum (fd, pDevMatch, open_data);
     }
 
     return fd;
@@ -88,7 +88,7 @@ int remove (const char *name)
      */
     if ((name == NULL) || (name[0] == EOS)) {
         return OS_STATUS_ERROR;
-	}
+    }
     
     /*
      * find which device match the <name>:
@@ -132,7 +132,7 @@ int read (int fd, char *buffer, int maxbytes)
 {
     if (maxbytes == 0) {
         return (0);
-	}
+    }
     
     return iosRead (fd, buffer, maxbytes);
 }

@@ -1,5 +1,5 @@
 /*==============================================================================
-** brigde.c -- tty and lian moudle bridge.
+** bridge.c -- tty and lian moudle bridge.
 **
 ** MODIFY HISTORY:
 **

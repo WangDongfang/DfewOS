@@ -1,29 +1,13 @@
-/****************************************Copyright (c)*****************************************************
-**                            Guangzhou ZHIYUAN electronics Co.,LTD.
-**                                      
-**                                 http://www.embedtools.com
+/*==============================================================================
+** date.c -- date command show
 **
-**--------------File Info----------------------------------------------------------------------------------
-** File name:               testTime.c
-** Last modified Date:      2011-7-5 9:32:10
-** Last Version:            1.0.0
-** Descriptions:            This file
+** MODIFY HISTORY:
 **
-**---------------------------------------------------------------------------------------------------------
-** Created by:              WangDongfang
-** Last modified Date:      2011-7-5 9:32:10
-** Version:                 1.0.0
-** Descriptions:            This file
-**
-**---------------------------------------------------------------------------------------------------------
-** Modified by:             WangDongfang
-** Modified date:           2011-10-21
-** Version:                 1.0.0
-** Description:             porting to dfewos
-**
-**********************************************************************************************************/
+** 2016-10-28 wdf Create.
+==============================================================================*/
 #include "timeLib.h"
 #include "nongli.h"
+#include "huangli.h"
 int sscanf(const char *str, char const *fmt, ...);
 
 /**********************************************************************************************************
@@ -59,14 +43,6 @@ static char *__GpcWeeksShort[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SA
 #define MODE_END_TODDAY         printf(COLOR_BG_BLACK);
 #define MODE_END_DATE           printf(COLOR_FG_WHITE); printf(COLOR_BG_BLACK);
 
-STATUS testTime ()
-{
-    TIME_SOCKET tsTimeSet = {2011, 7, 4, 9, 34, 0};
-
-    timeSet(tsTimeSet);
-    return OK;
-}
-
 static STATUS isLeapyear (int iYear)
 {
     return (iYear % 400 == 0) || ((iYear % 4 == 0) && (iYear % 100 != 0));
@@ -98,36 +74,36 @@ static int monthDays (int iYear, int iMonth)
     }
 }
 
-/**********************************************************************************************************
-** Function name:           date
-** Descriptions:            display now month calendar with color, like this:
-**                          -----------------------------
-**                           SUN MON TUE WED THU FRI SAT
-**                          -----------------------------
-**                                                 1   2
-**                             3   4   5   6   7   8   9
-**                            10  11  12  13  14  15  16
-**                            17  18  19  20  21  22  23
-**                            24  25  26  27  28  29  30
-**                            31
-**                          -----------------------------
-** input parameters:        NONE
-** output parameters:       NONE
-** Returned value:          OK: Always
-** Created by:              WangDongfang
-** Created Date:            2010-07-02
-**---------------------------------------------------------------------------------------------------------
-** Modified by:
-** Modified date:
-**---------------------------------------------------------------------------------------------------------
-**********************************************************************************************************/
+/*==============================================================================
+ * - C_date()
+ *
+ * - show or set data & time
+ *   usage: -> date [2016 10 28 15 59]
+ *   display now month calendar with color, like this:
+ *   Date  : 2016-10-28
+ *   Today : Friday
+ *   -----------------------------
+ *    SUN MON TUE WED THU FRI SAT
+ *   -----------------------------
+ *                             1
+ *     2   3   4   5   6   7   8
+ *     9  10  11  12  13  14  15
+ *    16  17  18  19  20  21  22
+ *    23  24  25  26  27  28  29
+ *    30  31
+ *   -----------------------------
+ *   Time : 15:59:03
+ *   农历 : 丙申年 九月廿八 【猴】
+ *   距立冬还有10天
+ */
 STATUS C_date (int argc, char **argv)
 {
     int iFirstWeekday;
     int iDays;
     int i;
     int set_val;
-    NONGLI_DATE nong_date;
+    NONGLI_DATE  nong_date;
+    HUANGLI_INFO huang_info;
 
     TIME_SOCKET tsTimeSet;
     TIME_SOCKET tsTimeNow;

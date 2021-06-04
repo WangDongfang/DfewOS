@@ -20,7 +20,7 @@
 #include "cmd.h"
 #include "fifo.h"
 
-#include <malloc.h>
+#include "memH.h"
 int sscanf(const char *str, char const *fmt, ...);
 
 /*======================================================================
@@ -53,7 +53,7 @@ extern int  gui_init();
 extern void cal_cmd_init();
 extern void ios_init();
 extern void media_init();
-void wtd_cmd_init();
+extern void wtd_cmd_init();
 
 /*======================================================================
   forward function declare
@@ -135,7 +135,7 @@ void T_shell ()
     tetris_cmd_init();      /* tetris */
     lian_cmd_init();        /* lianliankan */
     date_cmd_init();        /* show and set date */
-    cal_cmd_init();			/* calculator expression */
+    cal_cmd_init();            /* calculator expression */
     gui_init();
     ios_init();
     media_init();
@@ -172,17 +172,12 @@ void T_shell ()
         }
     }
 }
-/*
-int isspace (int c)
-{
-	return  ((c == ' ') || (c == '\t') || (c == '\n'));
-}*/
 /*==============================================================================
  * - _del_front_space()
  *
  * - find the first no space char position
  */
-static char *_del_front_space(char *cmd_line)
+static char *_del_front_space (char *cmd_line)
 {
     while (isspace(*cmd_line)) {
         cmd_line++;
@@ -245,9 +240,9 @@ int _get_cmd_line (char *s)
 
         /* check Tab key */
         if ((c != '\t') && have_tab) {
-        	int s_len = strlen (s);
-        	int prefix_len;
-        	prefix_len = _get_last_cmd_len (s);
+            int s_len = strlen (s);
+            int prefix_len;
+            prefix_len = _get_last_cmd_len (s);
             strcpy (&s[s_len - prefix_len], tab_matched_cmd);
             i = strlen (s);
             have_tab = 0;
@@ -259,10 +254,10 @@ int _get_cmd_line (char *s)
                 serial_putc('\n');
                 goto got_it;
             case '\b':                      /* Backspace */
-            	if (i >= 1) {
+                if (i >= 1) {
                     serial_puts("\b \b");
                     i--;
-            	}
+                }
                 break;
             case '\t':                      /* Tab */
                 have_tab = 1;
@@ -354,8 +349,8 @@ got_it:
 
 /**********************************************************************************************************
   command operater
- **********************************************************************************************************/
-static int _shell_exit ()
+**********************************************************************************************************/
+static int C_shell_exit ()
 {
     return CMD_EXIT;
 }
@@ -485,6 +480,47 @@ int C_get_fifo (int argc, char **argv)
     serial_printf("The get operation is Done.");
     return CMD_OK;
 }
+/*======================================================================
+  command "cc" "dd". Example task create and delete
+======================================================================*/
+void delay_task();
+static int _G_is_delete = 0;
+int C_cc()
+{
+
+    int cpsr_c;
+    char a[16];
+
+    _G_is_delete = 0;
+
+    cpsr_c = CPU_LOCK();
+    task_create("tDelay", 1024,100, delay_task, 0, 0);
+    CPU_UNLOCK(cpsr_c);
+
+    int sprintf(char *, const char *, ...);
+    sprintf(a, "donkey = %d\n", 8);
+    serial_printf(a);
+
+    return CMD_OK;
+}
+int C_dd()
+{
+    _G_is_delete = 1;
+
+    return CMD_OK;
+} 
+void delay_task()
+{
+    int i = 0;
+    FOREVER {
+        delayQ_delay(300);
+        serial_printf("tDelay [0x%8X]: i = %d\n", G_p_current_tcb, i);
+        i++;
+        if (_G_is_delete) {
+            break;
+        }
+    }
+}
 
 /*==============================================================================
  * - C_reboot()
@@ -493,14 +529,18 @@ int C_get_fifo (int argc, char **argv)
  */
 int C_reboot (int argc, char **argv)
 {
+#if 0
     __asm__ (
-        "ldr	r1, =0x7e00f000\n"
-        "ldr	r2, [r1, #0x118]\n"
-        "ldr	r3, =0xffff\n"
-        "and	r2, r3, r2, lsr #12\n"
-        "str	r2, [r1, #0x114]\n"
+        "ldr    r1, =0x7e00f000\n"
+        "ldr    r2, [r1, #0x118]\n"
+        "ldr    r3, =0xffff\n"
+        "and    r2, r3, r2, lsr #12\n"
+        "str    r2, [r1, #0x114]\n"
         "_loop_forever:\n"
-        "b	_loop_forever\n");
+        "b    _loop_forever\n");
+#else
+    CPU_REBOOT();
+#endif
 
     return CMD_OK;
 }
@@ -508,7 +548,7 @@ int C_reboot (int argc, char **argv)
 /**********************************************************************************************************
   init the origin commands, such as "i" "exit" "banner"
 **********************************************************************************************************/
-int cc(); int dd(); int b(); int c(); int m(); int q();
+int b(); int c(); int m(); int q();
 int h();
 int C_show_memory (int argc, char **argv);
 int C_set_memory (int argc, char **argv);
@@ -523,11 +563,11 @@ static CMD_INF _G_shell_origin_cmds[] = {
     {"d",      "show memory value",     (CMD_FUNC)C_show_memory},
     {"s",      "set memory value",      (CMD_FUNC)C_set_memory},
     {"banner", "show the os banner",    (CMD_FUNC)banner},
-    {"cc",     "create a delay task",   (CMD_FUNC)cc},
-    {"dd",     "over all delay task",   (CMD_FUNC)dd},
+    {"cc",     "create a delay task",   (CMD_FUNC)C_cc},
+    {"dd",     "over all delay task",   (CMD_FUNC)C_dd},
     {"pp",     "put integer into FIFO", (CMD_FUNC)C_put_fifo},
     {"gg",     "get integer from FIFO", (CMD_FUNC)C_get_fifo},
-    {"exit",   "exit this shell",       (CMD_FUNC)_shell_exit},
+    {"exit",   "exit this shell",       (CMD_FUNC)C_shell_exit},
     {"reboot", "reboot DfewOS",         (CMD_FUNC)C_reboot}
 };
 

@@ -18,7 +18,7 @@
 #include "serial.h"
 #include "string.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 /*======================================================================
   config
@@ -210,7 +210,7 @@ static uint32 _alloc_stack (uint32 stack_size)
             current_page++;
         }
         if (matched_stack_pages == need_stack_pages) {
-        	break;
+            break;
         }
     } /* while () */
 
@@ -267,7 +267,7 @@ static void _release_stack (OS_TCB *pTcb)
 static int _stack_used_percent (OS_TCB *pTcb)
 {
 #if 1
-	/* Binary Search */
+    /* Binary Search */
     uint32 *low = (uint32 *)(pTcb->stack_start - pTcb->stack_size);
     uint32 *high = (uint32 *)(pTcb->stack_start - 4);
     uint32 *mid = low + (high - low) / 2;
@@ -297,11 +297,11 @@ static int _stack_used_percent (OS_TCB *pTcb)
  * - alloc the TCB and STACK, then push a default context frame to the stack, for load.
  */
 OS_TCB *task_create(const char *task_name,
-                      uint32      stack_size,
-                      uint32      task_priority,
-                      FUNC_PTR    task_entry,
-                      uint32      arg1,
-                      uint32      arg2)
+                    uint32      stack_size,
+                    uint32      task_priority,
+                    FUNC_PTR    task_entry,
+                    uint32      arg1,
+                    uint32      arg2)
 {
     int cpsr_c;
     OS_TCB *pTcb   = NULL;
@@ -324,7 +324,7 @@ OS_TCB *task_create(const char *task_name,
     pTcb->arg1          = arg1;
     pTcb->arg2          = arg2;
     pTcb->status        = TASK_STATUS_READY;
-    pTcb->pend_obj	    = NULL;
+    pTcb->pend_obj      = NULL;
 
 
     /* alloc stack */
@@ -338,12 +338,16 @@ OS_TCB *task_create(const char *task_name,
     /*
      * init the task context in stack
      */
+#if 0
     pStack -= 16;      /* pStack -> a context frame top CPSR */
     pStack[0] = EN_IRQ | MOD_SVC;     /* cpsr */
     pStack[1] = (uint32)pTcb;         /* r0   _task_entry() argument */
     pStack[15]= (uint32)_task_entry;  /* pc   */
 
     pTcb->sp = (uint32)pStack;                  /* save stack point in tcb */
+#else
+    pTcb->sp = CPU_STACK_INIT((int)_task_entry, (int)pTcb, (int*)pStack);
+#endif
 
     cpsr_c = CPU_LOCK();
 
@@ -362,9 +366,9 @@ OS_TCB *task_create(const char *task_name,
  */
 OS_STATUS task_delete (OS_TCB *pTcb)
 {
-	int cpsr_c;
+    int cpsr_c;
 
-	cpsr_c = CPU_LOCK();
+    cpsr_c = CPU_LOCK();
 
     /* remove the tcb from xx list */
     switch (pTcb->status) {
@@ -396,7 +400,7 @@ OS_STATUS task_delete (OS_TCB *pTcb)
 
     /* free this task alloced heap memory */
     /*memH_free (pTcb);*/ /* T_shell alloc many memory for [yaffs] [net]...
-      	  	  	  	  	  	 we can't free them when we exit shell */
+      we can't free them when we exit shell */
 
     /* free task stack */
     _release_stack (pTcb);
@@ -506,9 +510,9 @@ void task_show ()
 {
 #define TASK_SHOW_HEAD  "\n  NAME      ENTRY      PRI    STATUS       SP         DELAY       P_OBJ       TCB        STACK"\
                         "\n--------  ----------  -----  --------  ----------  ----------  ----------  ----------  ----------\n"
-	int cpsr_c;
+    int cpsr_c;
 
-	cpsr_c = CPU_LOCK();
+    cpsr_c = CPU_LOCK();
 
     serial_puts(TASK_SHOW_HEAD);
 

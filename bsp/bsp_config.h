@@ -71,7 +71,7 @@
 /* whole memory */
 #define CONFIG_MEM_START_ADDR       0x50000000
 #define CONFIG_MEM_SIZE             (128 * MB)
-#define CONFIG_MEM_END_ADDR         0x54000000
+#define CONFIG_MEM_END_ADDR         0x58000000
 /**********************************************************************************************************
  * the CONFIG_IRQ_STACK first 2 words used to store IRQ mode's LR and R0 when in TICK context switch
 **********************************************************************************************************/

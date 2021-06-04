@@ -18,7 +18,7 @@ extern "C" {
 /*======================================================================
   kernel version
 ======================================================================*/
-#define DFEW_KERNEL_VERSION          "DFEW version 0.1.0"
+#define DFEW_KERNEL_VERSION     "DFEW version 0.1.0"
 
 /*======================================================================
   utils
@@ -32,10 +32,12 @@ extern "C" {
 
 #define N_ELEMENTS(array)       (sizeof(array) / sizeof((array)[0]))
 
+#define FOREVER                 for (;;)
+
 /*======================================================================
   Software CONFIG
 ======================================================================*/
-#define PATH_LEN_MAX             256 /* path length                   */
+#define PATH_LEN_MAX            256  /* path length                   */
 
 #ifdef __cplusplus
 }

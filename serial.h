@@ -37,7 +37,7 @@ int serial_pend(int ticks);
 #define COLOR_FG_MAGEN  "\033[35m"                                      /*  Æ·ºì ×Ö                      */
 #define COLOR_FG_CYAN   "\033[36m"                                      /*  Çà   ×Ö                      */
 #define COLOR_FG_WHITE  "\033[37m"                                      /*  °×   ×Ö                      */
-
+#define COLOR_FG_DEF    "\033[0m"                                       /*  Ä¬ÈÏÑÕÉ«                     */
 
 #define COLOR_BG_BLACK  "\033[40m"                                      /*  ºÚ   µ×                      */
 #define COLOR_BG_RED    "\033[41m"                                      /*  ºì   µ×                      */

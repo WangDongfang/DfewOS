@@ -36,7 +36,7 @@
 #include "string.h"
 #include "fifo.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 /*==============================================================================
  * - fifo_create()

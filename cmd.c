@@ -13,7 +13,7 @@
 #include "string.h"
 #include "cmd.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 /*======================================================================
   command node to linked in _G_cmd_list struct
@@ -52,7 +52,7 @@ static int _G_cpsr_c;
  */
 void cmd_add (CMD_INF *new_cmd_info)
 {
-	CMD_NODE *new_cmd_node = NULL;
+    CMD_NODE *new_cmd_node = NULL;
 
     CMD_MANAGE_LOCK();
     new_cmd_node = (CMD_NODE *)malloc(sizeof(CMD_NODE));
@@ -127,7 +127,7 @@ int cmd_tab (const char *prefix, char *cmd_line)
         if (pLast == NULL) {
             pLast = (CMD_NODE *)DL_FIRST(&_G_cmd_list);
         } else {
-        	pLast = (CMD_NODE *)DL_NEXT(pLast);
+            pLast = (CMD_NODE *)DL_NEXT(pLast);
         }
     }
 
@@ -152,7 +152,7 @@ int cmd_tab (const char *prefix, char *cmd_line)
  * - analyse the command line. 
  *   modify global variable "_G_command", "_G_argc", "_G_argv"
  */
-static int _cmd_dispatch_arg(char *cmd_line)
+static int _cmd_dispatch_arg (char *cmd_line)
 {
     int after_blank = 1;
 

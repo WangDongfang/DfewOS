@@ -286,7 +286,7 @@ void free (void *usr_p)
  *   <pBlock> block to reallocate
  *   <newSize> new block size
  */
-void * realloc (void *pBlock, size_t newSize)
+void *realloc (void *pBlock, size_t newSize)
 {
     void *pNewBlock;
     

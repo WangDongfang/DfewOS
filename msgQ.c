@@ -13,7 +13,7 @@
 #include "msgQ.h"
 #include "string.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 #include "serial.h"
 

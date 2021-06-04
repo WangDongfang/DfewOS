@@ -19,40 +19,35 @@ typedef unsigned char  uint8;
 typedef unsigned int   size_t;
 typedef void (*FUNC_PTR) (uint32 arg1, uint32 arg2);
 
-#define FAST             register
-
 #define OS_STATUS        int
 #define OS_STATUS_OK     0
 #define OS_STATUS_ERROR -1
 
+#define FAST    register
+
 #ifndef NULL
-#define NULL            (void *)0
+#define NULL    (void *)0
 #endif
 
-#define FOREVER          for (;;)
-
-#if	!defined(FALSE) || (FALSE!=(0))
-#define FALSE		(0)
+#if !defined(FALSE) || (FALSE!=(0))
+#define FALSE   (0)
 #endif
 
-#if	!defined(TRUE) || (TRUE!=(1))
-#define TRUE		(1)
+#if !defined(TRUE) || (TRUE!=(1))
+#define TRUE    (1)
 #endif
 
 #ifndef BOOL
-#define BOOL            int
+#define BOOL    int
 #endif
 
 #ifndef EOS
-#define EOS		'\0'	/* C string terminator */
+#define EOS     '\0' /* C string terminator */
 #endif
 
 #ifndef EOF
-#define EOF		(-1)
+#define EOF     (-1) /* End of file */
 #endif
-
-extern int  CPU_LOCK();
-extern void CPU_UNLOCK(int cpsr_c);
 
 #ifdef __cplusplus
 }

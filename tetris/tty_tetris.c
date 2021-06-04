@@ -114,13 +114,14 @@ static void _draw_frame ()
     for (i = 0; i < COL_NUM * BLOCK_WIDTH; i++) serial_putc ('-');
     serial_putc ('+');
 
-    /* move cursor to bottom top */
+    /* move cursor to left bottom */
     serial_printf ("\033[%d;%dH", ROW_START + ROW_NUM * BLOCK_HEIGHT, COL_START - 1);
     /* +--------------+ */
     serial_putc ('+');
     for (i = 0; i < COL_NUM * BLOCK_WIDTH; i++) serial_putc ('-');
     serial_putc ('+');
 
+#if 0
     /* draw left line */
     serial_printf ("\033[%d;%dH", ROW_START, COL_START - 1);
     for (i = 0; i < ROW_NUM * BLOCK_HEIGHT; i++) {
@@ -134,6 +135,16 @@ static void _draw_frame ()
         serial_putc ('|');
         serial_puts ("\033[B\b"); /* move cursor down */
     }
+#else
+    /* draw left right line */
+
+    for (i = 0; i < ROW_NUM * BLOCK_HEIGHT; i++) {
+        serial_printf ("\033[%d;%dH", ROW_START+i, COL_START - 1);
+        serial_putc ('|');
+        serial_printf ("\033[%d;%dH", ROW_START+i, COL_START + COL_NUM * BLOCK_WIDTH);
+        serial_putc ('|');
+    }
+#endif
 }
 
 //----- Main --------------------------------

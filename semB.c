@@ -12,7 +12,7 @@
 #include "readyQ.h"
 #include "semB.h"
 
-#include <malloc.h>
+#include "memH.h"
 
 #include "serial.h"
 

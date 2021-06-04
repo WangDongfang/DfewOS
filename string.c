@@ -5,7 +5,6 @@
 **
 ** 2011-08-15 wdf Create.
 ==============================================================================*/
-#include "types.h"
 #include "string.h"
 
 
@@ -51,7 +50,7 @@ char *strncpy (char       *s1,       /* string to copy to */
   Always NULL terminates (unless <siz> == 0).
   Returns strlen(src); if retval >= siz, truncation occurred.
 **********************************************************************************************************/
-size_t  strlcpy (char *dst, const char *src, size_t siz)
+size_t strlcpy (char *dst, const char *src, size_t siz)
 {
     FAST const char *p = src;
     
@@ -166,7 +165,7 @@ char *strcat (char       *dest,
 /**********************************************************************************************************
   concatenate one string to another (ANSI)
   appends up to <n> characters from string <append> to the end of string <dest>.
-  <dest> terminated by '\0' aways.
+  <dest> terminated by '\0' aways, it means max <n-1> vaild chars are appended.
 **********************************************************************************************************/
 char *strncat (char       *dest, 
                const char *append,
@@ -259,6 +258,29 @@ void *memrchr(const void *str, int c, size_t n)
     return  (NULL);
 }
 
+/**********************************************************************************************************
+  find string in string (ANSI)
+**********************************************************************************************************/
+char *strstr(const char *s1,const char *s2)
+{
+    int  len2;
+    
+    if (!s1 || !s2) {
+        return  (NULL);
+    }
+
+    len2 = strlen(s2);
+    if (len2 == 0) {
+        return  (char *)s1;
+    }
+
+    for (; *s1; ++s1){
+        if (*s1 == *s2 && strncmp(s1, s2, len2) == 0) {
+            return  (char *)s1;
+        }
+    }
+    return  (NULL);
+}
 
 #define ALIGNMENT   3
 void bcopy (const char *source,     /* pointer to source buffer      */
@@ -266,64 +288,58 @@ void bcopy (const char *source,     /* pointer to source buffer      */
             int nbytes)             /* number of bytes to copy       */
 {
     FAST char *dstend;
-    FAST long *src;
-    FAST long *dst;
+    FAST long *lsrc;
+    FAST long *ldst;
     int tmp = destination - source;
 
-    if (tmp <= 0 || tmp >= nbytes) {
-        /* forward copy */
+    if (tmp <= 0 || tmp >= nbytes) { /* destination before source or no cover, forward copy */
 
         dstend = destination + nbytes;
 
         /* do byte copy if less than ten or alignment mismatch */
-
         if (nbytes < 10 || (((int)destination ^ (int)source) & ALIGNMENT))
             goto byte_copy_fwd;
 
-        /* if odd-aligned copy byte */
-
+        /* copy non-ALIGNMENT byte */
         while ((int)destination & ALIGNMENT)
             *destination++ = *source++;
 
-        src = (long *) source;
-        dst = (long *) destination;
-
+        /* big step copy, 4 bytes per time */
+        lsrc = (long *) source;
+        ldst = (long *) destination;
         do {
-            *dst++ = *src++;
-        } while (((char *)dst + sizeof (long)) <= dstend);
+            *ldst++ = *lsrc++;
+        } while (((char *)ldst + sizeof (long)) <= dstend);
 
-        destination = (char *)dst;
-        source      = (char *)src;
+        destination = (char *)ldst;
+        source      = (char *)lsrc;
 
 byte_copy_fwd:
         while (destination < dstend)
             *destination++ = *source++;
-    } else {
-        /* backward copy */
+    } else { /* source area tail cover destination head, backward copy */
 
         dstend       = destination;
         destination += nbytes;
         source      += nbytes;
 
         /* do byte copy if less than ten or alignment mismatch */
-
         if (nbytes < 10 || (((int)destination ^ (int)source) & ALIGNMENT))
             goto byte_copy_bwd;
 
-        /* if odd-aligned copy byte */
-
+        /* copy non-ALIGNMENT byte */
         while ((int)destination & ALIGNMENT)
             *--destination = *--source;
 
-        src = (long *) source;
-        dst = (long *) destination;
-
+        /* big step copy, 4 bytes per time */
+        lsrc = (long *) source;
+        ldst = (long *) destination;
         do {
-            *--dst = *--src;
-        } while (((char *)dst - sizeof(long)) >= dstend);
+            *--ldst = *--lsrc;
+        } while (((char *)ldst - sizeof(long)) >= dstend);
 
-        destination = (char *)dst;
-        source      = (char *)src;
+        destination = (char *)ldst;
+        source      = (char *)lsrc;
 
 byte_copy_bwd:
         while (destination > dstend)
@@ -371,10 +387,9 @@ void *memmove (void       *destination,   /* destination of copy */
 *
 * SEE ALSO: bfillBytes()
 */
-
 void bfill (FAST char *buf,           /* pointer to buffer              */
             int        nbytes,        /* number of bytes to fill        */
-            FAST int   ch)              /* char with which to fill buffer */
+            FAST int   ch)            /* char with which to fill buffer */
 {
     FAST long *pBuf;
     char *bufend = buf + nbytes;
@@ -439,23 +454,23 @@ int memcmp (const void *m1, const void *m2, size_t n)
     return (int)(p1[-1] - p2[-1]);
 }
 
-#if 0
-/**********************************************************************************************************
-  simple determine a character is bank or not
-**********************************************************************************************************/
-int isspace(int c)
-{
-    return ((c == ' ') || (c == '\t'));
-}
-
 /**********************************************************************************************************
   convert an upper-case letter to its lower-case equivalent (ANSI)
 **********************************************************************************************************/
 int tolower(int c)
 {
-    return (c |= 0x20);
+    if ((c >= 'A') && (c <= 'Z')) {
+        c |= 0x20;
+    }
+    return c;
 }
-#endif
+int toupper(int c)
+{
+    if ((c >= 'a') && (c <= 'z')) {
+        c -= 0x20;
+    }
+    return c;
+}
 
 /**********************************************************************************************************
   compute the absolute value of an integer (ANSI)
@@ -466,7 +481,7 @@ int abs (int i)
 }
 
 /**********************************************************************************************************
-  conver string to unsigned integer (ANSI)
+  convert string to unsigned integer (ANSI)
 **********************************************************************************************************/
 #define ULONG_MAX   4294967295LU
 #define ERANGE      34 /* Math result not representable */
@@ -499,8 +514,7 @@ unsigned long _Stoul (const char *s, char **endptr, int base)
 
     /* get base */
     if (base < 0 || base == 1 || base > BASE_MAX) {
-        if (endptr)
-            *endptr = (char *)s;
+        if (endptr) *endptr = (char *)sc;
         return 0;
     } else if (base) { /* user specify base */
         if (base == 16 && *sc == '0' && (sc[1] == 'x' || sc[1] == 'X'))
@@ -527,20 +541,17 @@ unsigned long _Stoul (const char *s, char **endptr, int base)
         x = x * base + dig;
     }
 
-    /* i can read a char */
+    /* i can't read a digit char */
     if (s1 == sc) {
-        if (endptr)
-            *endptr = (char *)s;
+        if (endptr) *endptr = (char *)sc;
         return 0;
     }
 
+    /* check over flow */
     n = sc - s2 - ndigs[base]; 
-    if (n < 0) {
-        ; /* no overflow */
-    } else if (n > 0 ||
-               x < x - dig ||
-               (x - dig) / base != y) { /* overflow */
-
+    if (n < 0) { /* no overflow */
+        ;
+    } else if ((n > 0) || (x < x - dig) || ((x - dig) / base != y)) { /* overflow */
         errno = ERANGE;
         x = ULONG_MAX;
     }
@@ -548,8 +559,7 @@ unsigned long _Stoul (const char *s, char **endptr, int base)
     if (sign == '-')
         x = -x;
 
-    if (endptr)
-        *endptr = (char *)s;
+    if (endptr) *endptr = (char *)sc;
 
     return x;
 }
@@ -576,7 +586,6 @@ int atoi (const char *s)
 *
 * SEE ALSO: strcspn()
 */
- 
 size_t strspn(const char * s,    /* string to search */
               const char * sep)  /* set of characters to look for in <s> */
 {
@@ -610,7 +619,6 @@ size_t strspn(const char * s,    /* string to search */
 *
 * SEE ALSO: strpbrk(), strspn()
 */
- 
 size_t strcspn(const char * s1, /* string to search */
                const char * s2) /* set of characters to look for in <s1> */
 {
@@ -630,7 +638,6 @@ size_t strcspn(const char * s1, /* string to search */
     return (s1 - save);
 }
 
-
 /*******************************************************************************
 *
 * strpbrk - find the first occurrence in a string of a character from a given set (ANSI)
@@ -649,7 +656,6 @@ size_t strcspn(const char * s1, /* string to search */
 #ifndef CHAR_FROM_CONST
 #define CHAR_FROM_CONST(x) (char *)(x)
 #endif /* CHAR_FROM_CONST */
-
 char * strpbrk(const char * s1,  /* string to search */
                const char * s2)  /* set of characters to look for in <s1> */
 {
@@ -704,7 +710,6 @@ char * strpbrk(const char * s1,  /* string to search */
 *
 * SEE ALSO: strtok()
 */
-
 char * strtok_r(char       * string,      /* string to break into tokens */
                 const char * separators,  /* the separators */
                 char      ** ppLast)      /* pointer to serve as string index */
@@ -722,7 +727,6 @@ char * strtok_r(char       * string,      /* string to break into tokens */
 
     return (string);
 }
-
 
 /******************************************************************************
 *
@@ -767,7 +771,6 @@ char * strtok_r(char       * string,      /* string to break into tokens */
 *
 * SEE ALSO: strtok_r()
 */ 
-
 char * strtok(char       * string,     /* string */
               const char * separator)  /* separator indicator */
 {
@@ -775,6 +778,249 @@ char * strtok(char       * string,     /* string */
 
     return (strtok_r (string, separator, &last));
 }
+
+
+/**********************************************************************************************************
+  ctype isalnum(), isalpha(), iscntrl(), isdigit(), isgraph(), islower(), isupper(), isprint(), ispunct()..
+**********************************************************************************************************/
+#define	_U	0x01 /* upper */
+#define	_L	0x02 /* lower */
+#define	_N	0x04 /* 0...9 */
+#define	_S	0x08 /* space */
+#define	_P	0x10 /* punct */
+#define	_C	0x20 /* cntrl */
+#define	_X	0x40 /* A...F */
+#define	_B	0x80
+const unsigned char _C_ctype_[1 + 256] = {
+	0,
+	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
+	_C,	_C|_S,	_C|_S,	_C|_S,	_C|_S,	_C|_S,	_C,	_C,
+	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
+	_C,	_C,	_C,	_C,	_C,	_C,	_C,	_C,
+	_S|_B,	_P,	_P,	_P,	_P,	_P,	_P,	_P,
+	_P,	_P,	_P,	_P,	_P,	_P,	_P,	_P,
+	_N,	_N,	_N,	_N,	_N,	_N,	_N,	_N,
+	_N,	_N,	_P,	_P,	_P,	_P,	_P,	_P,
+	_P,	_U|_X,	_U|_X,	_U|_X,	_U|_X,	_U|_X,	_U|_X,	_U,
+	_U,	_U,	_U,	_U,	_U,	_U,	_U,	_U,
+	_U,	_U,	_U,	_U,	_U,	_U,	_U,	_U,
+	_U,	_U,	_U,	_P,	_P,	_P,	_P,	_P,
+	_P,	_L|_X,	_L|_X,	_L|_X,	_L|_X,	_L|_X,	_L|_X,	_L,
+	_L,	_L,	_L,	_L,	_L,	_L,	_L,	_L,
+	_L,	_L,	_L,	_L,	_L,	_L,	_L,	_L,
+	_L,	_L,	_L,	_P,	_P,	_P,	_P,	_C
+};
+
+const unsigned char *_ctype_ = _C_ctype_;                               /* Backward compatibility.      */
+
+int isalnum(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & (_U|_L|_N)));
+}
+int isalpha(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & (_U|_L)));
+}
+int iscntrl(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _C));
+}
+int isdigit(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _N));
+}
+int isgraph(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & (_P|_U|_L|_N)));
+}
+int islower(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _L));
+}
+int isupper(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _U));
+}
+int isprint(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & (_P|_U|_L|_N|_B)));
+}
+int ispunct(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _P));
+}
+int isspace(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & _S));
+}
+int isxdigit(int c)
+{
+    return (c == -1 ? 0 : ((_ctype_ + 1)[(unsigned char)c] & (_N|_X)));
+}
+int isascii(int c)
+{
+    return ((c >= 0x00 && c <= 0x7F) ? 1 : 0);
+}
+int toascii(int c)
+{
+    return (c & 0x7F);
+}
+int isblank(int c)
+{
+    return (c == ' ' || c == '\t');
+}
+
+
+/**********************************************************************************************************
+  stdlib.h srand(), rand()
+**********************************************************************************************************/
+static int holdrand = 1;
+void srand (unsigned int seed)
+{
+    holdrand = seed;
+}
+int rand()
+{
+    /* [0, 32767] */
+    return (((holdrand = holdrand * 214013L + 2531011L) >> 16) & 0x7fff);
+}
+
+
+/**********************************************************************************************************
+  stdio.h sscanf(), sprintf()
+**********************************************************************************************************/
+//#include <stdarg.h>
+int sscanf(const char *str, char const *fmt, ...)
+{
+    int *pOutVal;
+    va_list arp;
+
+    va_start(arp, fmt);
+    pOutVal = va_arg(arp, int*);
+    if (strcmp(fmt, "%d") == 0 ||
+        strcmp(fmt, "0x%X") == 0 ||
+        strcmp(fmt, "0x%x") == 0) {
+        *pOutVal = atoi(str);
+    } else {
+        *pOutVal = 0;
+    }
+    va_end(arp);
+    return 0;
+}
+
+/**********************************************************************************************************
+  sprintf
+**********************************************************************************************************/
+static int df_sputc (char *buff, int *len, char c)
+{
+    buff[*len] = c;
+    *len = *len + 1;
+    return 1;
+}
+static int df_sputs (char *buff, int *len, const char *s)
+{
+    int i = 0;
+    if (s == 0) return 0;
+
+    while (s[i]) {
+        buff[*len] = s[i];
+        *len = *len + 1;
+        i++;
+    }
+    return i;
+}
+#define f_sputc(c, f)  df_sputc(buff, &len, c)
+#define f_sputs(s, f)  df_sputs(buff, &len, s)
+#define ULONG         unsigned long
+#define UCHAR         unsigned char
+int sprintf (char *buff, const char* str, ... )
+{
+    va_list arp;
+    UCHAR c, f, r;
+    ULONG val;
+    char s[16];
+    int i, w, res, cc;
+    int len = 0;
+
+    va_start(arp, str);
+
+    for (cc = res = 0; cc != EOF; res += cc) {
+        c = *str++;
+        if (c == 0) break;            /* End of string */
+        if (c != '%') {               /* Non escape cahracter */
+            cc = f_sputc(c, fil);
+            if (cc != EOF) cc = 1;
+            continue;
+        }
+        w = f = 0;
+        c = *str++;
+        if (c == '%') {               /* print '%' _Dong */
+            cc = f_sputc(c, fil);
+            continue;
+        }
+        if (c == '0') {               /* Flag: '0' padding */
+            f = 1; c = *str++;
+        }
+        if (c == ' ') {               /* Flag: ' ' padding _Dong */
+            c = *str++;
+        }
+        while (c >= '0' && c <= '9') {/* Precision */
+            w = w * 10 + (c - '0');
+            c = *str++;
+        }
+        if (c == 'l') {               /* Prefix: Size is long int */
+            f |= 2; c = *str++;
+            if (c == 'l') {
+                f |= 8; c = *str++;
+            }
+        }
+        if (c == 's') {               /* Type is string */
+            cc = f_sputs(va_arg(arp, char*), fil);
+            continue;
+        }
+        if (c == 'c') {               /* Type is character */
+            cc = f_sputc(va_arg(arp, int), fil);
+            if (cc != EOF) cc = 1;
+            continue;
+        }
+        r = 0;
+        if (c == 'd') r = 10;         /* Type is signed decimal */
+        if (c == 'u') r = 10;         /* Type is unsigned decimal */
+        if (c == 'X' || c == 'x' || c == 'p') r = 16;        /* Type is unsigned hexdecimal _Dong */
+        if (r == 0) break;            /* Unknown type */
+        if (f & 8) {                  /* Get the value */
+            val = (ULONG long)va_arg(arp, long long);
+        } else if (f & 2) {
+            val = (ULONG)va_arg(arp, long);
+        } else {
+            val = (c == 'd') ? (ULONG)(long)va_arg(arp, int) : (ULONG)va_arg(arp, unsigned int);
+        }
+        /* Put numeral string */
+        if (c == 'd') {
+            if (val & 0x80000000) {
+                val = 0 - val;
+                f |= 4;
+            }
+        }
+        i = sizeof(s) - 1; s[i] = 0;
+        do {
+            c = (UCHAR)(val % r + '0');
+            if (c > '9') c += 7;
+            s[--i] = c;
+            val /= r;
+        } while (i && val);
+        if (i && (f & 4)) s[--i] = '-';
+        w = sizeof(s) - 1 - w;
+        while (i && i > w) s[--i] = (f & 1) ? '0' : ' ';
+        cc = f_sputs(&s[i], fil);
+    }
+
+    va_end(arp);
+
+    buff[len] = '\0';
+    return (cc == EOF) ? cc : res;
+}
+
 
 /*==============================================================================
  ** FILE END

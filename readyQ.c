@@ -126,8 +126,9 @@ void readyQ_remove (OS_TCB *pTcb)
          */
         G_readyQ.bMap [priority >> 5] &= ~(1 << (priority & 0x1f));
 
-        if (G_readyQ.bMap[priority >> 5] == 0)
+        if (G_readyQ.bMap[priority >> 5] == 0) {
             G_readyQ.metaBMap &= ~(1 << (priority >> 5));
+        }
 
         if (pTcb == G_readyQ.highest_tcb) {
             G_readyQ.highest_tcb = (OS_TCB *)DL_FIRST(&G_readyQ.listArray[_readQ_highest_pri()]);

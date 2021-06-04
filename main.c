@@ -48,7 +48,7 @@ void T_EntryTask1()
         delayQ_delay(100);
 
         if(i >= 10) {
-        	semB_give(_G_p_semB);
+            semB_give(_G_p_semB);
         }
 #endif
     }
@@ -68,7 +68,7 @@ void T_EntryTask2()
         msgQ_send(_G_p_msgQ, MESSAGE, sizeof(MESSAGE), 10);
 
         /* serial_printf("Task2---------Ticks = %d\n", G_ticks); */
-        //serial_printf("%8s%d\n", "start",4);
+        /* serial_printf("%8s%d\n", "start",4); */
         task_show ();
         delayQ_delay(300);
     }
@@ -87,11 +87,16 @@ void T_EntryTask3 (uint32 arg1, uint32 arg2)
     serial_printf("Task3 --------- arg1 = %d arg2 = %d\n", arg1, arg2);
     serial_puts("/**********************************/\n");
     for (; i < 3; i++) {
-    	delay(20);
+        delay(20);
         serial_printf("Task3 --------- %d\n", i);
     }
 }
-
+void test_msgQ_example_1 ()
+{
+    task_create("tTask1", 1024, 2, T_EntryTask1, 0, 0);
+    task_create("tTask2", 1024, 3, T_EntryTask2, 0, 0);
+    task_create("tTask3", 1024, 1, T_EntryTask3, 2, 3);
+}
 
 /**********************************************************************************************************
   Test semM: TsemM1 <- A,B; TsemM2 <- A; TsemM3 <- B;
@@ -286,47 +291,6 @@ void T_idle ()
     FOREVER {}
 }
 
-/**********************************************************************************************************
-  command "cc" "dd". Example task create and delete
-**********************************************************************************************************/
-static int _G_is_delete = 0;
-int cc()
-{
-
-    int cpsr_c;
-    char a[16];
-
-    _G_is_delete = 0;
-
-    cpsr_c = CPU_LOCK();
-    task_create("tDelay", 1024,100, delay_task, 0, 0);
-    CPU_UNLOCK(cpsr_c);
-
-    int sprintf(char *, const char *, ...);
-    sprintf(a, "donkey = %d\n", 8);
-    serial_printf(a);
-
-    return CMD_OK;
-}
-int dd()
-{
-    _G_is_delete = 1;
-
-    return CMD_OK;
-} 
-void delay_task()
-{
-    int i = 0;
-    FOREVER {
-        delayQ_delay(300);
-        serial_printf("tDelay [0x%8X]: i = %d\n", G_p_current_tcb, i);
-        i++;
-        if (_G_is_delete) {
-            break;
-        }
-    }
-}
-
 /*==============================================================================
  * - main()
  *
@@ -334,34 +298,33 @@ void delay_task()
  */
 int main()
 {
-	heap_init();        /* init heap memory, must be first */
+    heap_init();        /* init heap memory, must be first */
     task_init();        /* clear task resoure */
     readyQ_init();      /* clear readyQ list, can omit */
     //libc_init();
     int_init();
     timer_init();       /* init TIMER hardware, enable tick intrrupt */
 
-	serial_init();      /* init UART hardware, enable receive intrrupt */
+    serial_init();      /* init UART hardware, enable receive intrrupt */
     //beep_init();        /* init BEEP hardware, create beep task */
 
-    task_create("tIdle",  1024, 255, T_idle,  0, 0);
+    task_create("tIdle",  1 * KB, 255, T_idle,  0, 0);
     task_create("tShell", 100 * KB,  0, T_shell, 0, 0);
-    //task_create("tTask1", 1024, 2, T_EntryTask1, 0, 0);
-    //task_create("tTask2", 1024, 3, T_EntryTask2, 0, 0);
-    //task_create("tTask3", 1024, 1, T_EntryTask3, 2, 3);
-    //test_semM_example_1();
-    //test_semM_example_2();
+    /* test_msgQ_example_1(); */
+    /* test_semM_example_1(); */
+    test_semM_example_2();
+
 
     LOAD_HIGHEST_TASK(); /* load highest task and tick start */
 
     /* never reach here */
-	return 0;
+    return 0;
 }
 
 void delay(volatile int n)
 {
-	volatile int i = 1000000;
-	while (i-- > 0) {
+    volatile int i = 1000000;
+    while (i-- > 0) {
         while (n-- > 0) {
             ;
         }

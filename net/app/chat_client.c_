@@ -68,9 +68,9 @@ int main(void)
 
         if (recv_from_sock(sockfd, buffer) > 0) {
             printf("%s\n", buffer);
-		} else {
-			printf ("recv noting!\n");
-		}
+        } else {
+            printf("recv noting!\n");
+        }
     }
 
     return 0;

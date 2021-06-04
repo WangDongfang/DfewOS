@@ -1,5 +1,5 @@
 /*==============================================================================
-** wNongli.h -- nong li interface.
+** nongli.h -- nong li interface.
 **
 ** MODIFY HISTORY:
 **

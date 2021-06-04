@@ -10,14 +10,15 @@
 
 #ifdef OS_DFEWOS
 #include <dfewos.h>
+#include "../string.h"     /* srand(), rand() */
 #else
 #include <vxWorks.h>
+#include <stdio.h>
+#include <stdlib.h>        /* srand(), rand() */
 #define  MIN(a, b)              (((a) > (b)) ? (b) : (a))
 #define  serial_printf          printf
 #endif
-#include <stdio.h>
-#include <stdlib.h>        /* srand(), rand() */
-#include "string.h"
+
 
 /*======================================================================
   config Block types
